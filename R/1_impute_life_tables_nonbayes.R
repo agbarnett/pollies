@@ -1,7 +1,7 @@
 # 1_impute_life_tables_nonbayes.R
 # imputed versions of life tables for countries with big gaps
 # impute males and females separately
-# non-bayesian version using two-dimensional splines; takes a few hours to run
+# non-Bayesian version using two-dimensional splines; takes a few hours to run
 # January 2020
 library(dplyr)
 library(ggplot2)
@@ -9,12 +9,12 @@ library(crs)
 
 ## which country
 country = 'Japan'
-country = 'Canada'
 country = 'Germany' # gap is 1952 to 1956, also some years where deaths end at 89 years
 country = 'UK'
-country = 'NZ'
+country = 'Canada'
 country = 'USA' 
 country = 'Austria'
+country = 'NZ'
 # load the meta-data
 load('data/meta.RData')
 meta = filter(meta, Country==country)

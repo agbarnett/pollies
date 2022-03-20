@@ -1,7 +1,7 @@
 # 3_plot_multiple_countries.R
 # Plot SMRs from multiple countries in one panel
 # does weighted and unweighted
-# March 2020
+# August 2020
 library(dplyr)
 library(ggplot2)
 library(ggrepel) # for non-overlapping labels
@@ -14,7 +14,7 @@ roundz = function(x, digits){
 }
 
 # key decisions:
-weighted = FALSE # switch to weighted or unweighted
+weighted = TRUE # switch to weighted or unweighted
 stype = 'SMR' # SMR (ratio) or SMD (difference)
 
 # get the list of countries
@@ -70,10 +70,16 @@ stats = full_join(stats.extremes, stats.latest, by='country') %>%
 if(stype=='SMR'){stats$SMR=2} # change label position depending on stats 
 if(stype=='SMD'){stats$SMR=20}
 
+# change NZ to New Zealand
+to.plot = mutate(to.plot, 
+                 country = ifelse(country=="NZ", 'New Zealand', country))
+stats = mutate(stats, 
+                 country = ifelse(country=="NZ", 'New Zealand', country))
+
 ## plot with country as facet ##
 # add legend in bottom-right
 legend = to.plot[1,] %>% # start with row in the data
-  mutate(country=' ', SMR=NA, lower=NA, upper=NA) # make missing otherwise dot shows
+  mutate(country=' ', SMR=NA, lower=0, upper=0) # make missing otherwise dot shows
 to.plot.plus.legend = bind_rows(to.plot, legend)
 mplot = ggplot(data=to.plot.plus.legend, aes(x=year, y=SMR)) + 
   geom_line(size=0.15, col=grey(0.4))+
@@ -116,38 +122,39 @@ if(weighted==TRUE){outfile = paste('figures/', start.file, '.weighted.jpg', sep=
 jpeg(outfile, width=4, height=6, units='in', res=1200, quality=100)
 print(mplot)
 dev.off()
-# version with confidence intervals
+
+## version with confidence intervals ##
 ciplot = ggplot(data=to.plot.plus.legend, aes(x=year, y=SMR, ymin=lower, ymax=upper)) + 
-  geom_ribbon(alpha=0.2)+
+  geom_ribbon(alpha=0.4, fill='darkorange')+
   geom_line(size=0.15, col=grey(0.4))+
   geom_point(col=grey(0.4), size=0.4)+
   geom_line(aes(x=year, y=fitted), col='blue', size=0.6)+ 
-  facet_wrap(~country)+
+  facet_wrap(~country, ncol=3)+
   # thin lines
   xlab('Year')+
   theme_bw()+
-  theme(axis.text.x=element_text(size=6)) # reduce text size
+  theme(axis.text.x=element_text(size=8)) # reduce text size
 if(stype=='SMR'){ciplot = ciplot + 
   ylab('Standardised mortality ratio')+
   scale_y_continuous(limits=c(0,2))+ # remove crazy upper limit from Italy
-  geom_hline(yintercept = 1, lty=1, col='dark red', size=0.8)+ # reference line at SMR = 1
+  geom_hline(yintercept = 1, lty=1, col='dark red', size=0.5)+ # reference line at SMR = 1
   # legend:
-  geom_label(data=stats, aes(x=year, y=SMR, label=label), size=1.5, hjust=0, vjust=1)+ # alignment for top-left corner
-  geom_text(data=legend, aes(x=1919, y=1.8, label='Politicians\nliving shorter'), size=2)+
-  geom_text(data=legend, aes(x=1919, y=1.05, label='Politicians equal\n to general population'), col='dark red', size=2)+
-  geom_text(data=legend, aes(x=1919, y=0.3, label='Politicians\n living longer'), size=2)+
-  geom_label(data=legend, aes(x=1816, y=2, label='Max\nMin\nLatest'), hjust=0, vjust=1, size=1.5) # labels
+  geom_label(data=stats, aes(x=year, y=SMR, label=label), size=2, hjust=0, vjust=1, col='blue')+ # alignment for top-left corner
+  geom_text(data=legend, aes(x=1919, y=1.8, label='Politicians\nliving shorter'), size=2.5)+
+  geom_text(data=legend, aes(x=1919, y=1.05, label='Politicians equal\n to general population'), col='dark red', size=2.5)+
+  geom_text(data=legend, aes(x=1919, y=0.3, label='Politicians\n living longer'), size=2.5)+
+  geom_label(data=legend, aes(x=1816, y=2, label='Max\nMin\nLatest'), hjust=0, vjust=1, size=2, col='blue') # labels
 }
 if(stype=='SMD'){ciplot = ciplot + 
   ylab('Standardised mortality difference')+
   scale_y_continuous(limits=c(-60,25))+ # remove crazy upper limit from Italy
   geom_hline(yintercept = 0, lty=1, col='dark red', size=0.8)+
   # legend:
-  geom_label(data=stats, aes(x=year, y=SMR, label=label), size=1.5, hjust=0, vjust=1)+ # alignment for top-left corner
-  geom_text(data=legend, aes(x=1919, y=20, label='Politicians\nliving shorter'), size=2)+
-  geom_text(data=legend, aes(x=1919, y=1.05, label='Politicians equal\n to general population'), col='dark red', size=2)+
-  geom_text(data=legend, aes(x=1919, y=-18, label='Politicians\n living longer'), size=2)+
-  geom_label(data=legend, aes(x=1816, y=20, label='Max\nMin\nLatest'), hjust=0, vjust=1, size=1.5) # labels
+  geom_label(data=stats, aes(x=year, y=SMR, label=label), size=2, hjust=0, vjust=1, col='blue')+ # alignment for top-left corner
+  geom_text(data=legend, aes(x=1919, y=20, label='Politicians\nliving shorter'), size=2.5)+
+  geom_text(data=legend, aes(x=1919, y=1.05, label='Politicians equal\n to general population'), col='dark red', size=2.5)+
+  geom_text(data=legend, aes(x=1919, y=-18, label='Politicians\n living longer'), size=2.5)+
+  geom_label(data=legend, aes(x=1816, y=20, label='Max\nMin\nLatest'), hjust=0, vjust=1, size=2, col='blue') # labels
 }
 if(stype=='SMD' & weighted==TRUE){ciplot = ciplot + 
   scale_y_continuous(limits=c(-32,25)) # remove crazy lower/upper limit from Italy
@@ -155,7 +162,7 @@ if(stype=='SMD' & weighted==TRUE){ciplot = ciplot +
 start.file = paste('MultiCountryWithIntervals', stype, sep='')
 if(weighted==FALSE){outfile = paste('figures/', start.file, '.jpg', sep='')}
 if(weighted==TRUE){outfile = paste('figures/', start.file, '.weighted.jpg', sep='')}
-jpeg(outfile, width=5.5, height=4, units='in', res=1200, quality=100)
+jpeg(outfile, width=6, height=6, units='in', res=1200, quality=100)
 print(ciplot)
 dev.off()
 

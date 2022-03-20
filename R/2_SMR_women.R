@@ -35,7 +35,7 @@ for (year in meta$Syear:meta$Eyear){
   year.end = as.Date(paste(year, '-12-31', sep="")) # end of year
   # calculate expected deaths
   eligible = filter(politicians, 
-               Date_entered<=year.end & DOD>=year.start) # entered some time during the year and were alive at the start of the year
+               Date_entered <= year.end & DOD >= year.start) # entered some time during the year and were alive at the start of the year
   if(nrow(eligible) > 0){ # do not run this year if there are no women
     exp = mutate(eligible, 
                  age = floor(as.numeric(difftime(year.start, DOB, units='days')/365.25)),  # calculate age at start of year ('current' age)

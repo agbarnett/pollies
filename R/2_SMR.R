@@ -5,19 +5,19 @@
 library(dplyr)
 
 # which country and is there imputed life table data
-country = 'Italy'; use.imputed = FALSE
-country = 'NZ'; use.imputed = TRUE
 country = 'Japan'; use.imputed = TRUE
-country = 'Switzerland'; use.imputed = FALSE
-country = 'France'; use.imputed = FALSE
 country = 'Brobdingnag'; use.imputed = FALSE
-country = 'Austria'; use.imputed = TRUE
-country = 'Canada'; use.imputed = TRUE
-country = 'Netherlands'; use.imputed = FALSE
-country = 'USA'; use.imputed = TRUE
 country = 'UK'; use.imputed = TRUE
 country = 'Germany'; use.imputed = TRUE
 country = 'Australia'; use.imputed = FALSE
+country = 'Canada'; use.imputed = TRUE
+country = 'France'; use.imputed = FALSE
+country = 'Italy'; use.imputed = FALSE
+country = 'Switzerland'; use.imputed = FALSE
+country = 'Netherlands'; use.imputed = FALSE
+country = 'USA'; use.imputed = TRUE
+country = 'Austria'; use.imputed = TRUE
+country = 'NZ'; use.imputed = TRUE
 # get the country's meta-data
 load('data/meta.RData')
 meta = filter(meta, Country==country)
@@ -75,7 +75,7 @@ for (follow.cut in c(10:60, 100)){ # years of follow-up after entry in scale of 
     exp = left_join(exp, this.life, by=c('age'='Age', 'Sex'='Sex')) %>% 
       summarise(expected=sum(qx*frac)) # expected deaths, fractional time in first year
     
-    ## flag any very high qx here??
+    ## flag any very high rates here??
     
     # calculate observed deaths
     obs = filter(to.SMR, DOD>=year.start & DOD<=year.end & Status=='Dead') %>% # died this year (not censored)
